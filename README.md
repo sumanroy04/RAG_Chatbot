@@ -1,7 +1,7 @@
 # **Mental Health Chatbot**
 
 **Final Year Project**
-_A chatbot for mental health support using Retrieval-Augmented Generation (RAG) and trusted data sources._
+_A chatbot for mental health support using Retrieval-Augmented Generation (RAG) and trusted data sources.
 
 ---
 
@@ -57,7 +57,7 @@ The bot is designed to support users by offering not only information but also c
 <img src="/images/screen_shot_2.png" />
 <img src="/images/screen_shot_3.png" />
 
----
+
 
 
 ## **User Interaction**
@@ -83,6 +83,13 @@ The bot is designed to support users by offering not only information but also c
 - **Integration with Mental Health Resources**: We aim to provide links to clinics, doctors, online counseling, and more.
 
 ---
+
+
+
+
+
+
+
 ## **Acknowledgments**
 
 - **LangChain**: For building robust chains of logic for querying and text processing.

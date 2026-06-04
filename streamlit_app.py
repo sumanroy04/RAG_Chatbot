@@ -22,7 +22,7 @@ st.set_page_config(
 st.markdown("""
     <style>
     div.css-textbarboxtype {
-        background-color: #121212;
+        background-color: #;
         border: 1px solid #DCDCDC;
         padding: 20px 20px 20px 70px;
         padding: 5% 5% 5% 10%;
