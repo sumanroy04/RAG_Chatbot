@@ -1,0 +1,18 @@
+# Use this on Python 3.14+ (pinned requirements.txt targets older Python)
+streamlit
+langchain
+langchain-classic
+langchain-community
+langchain-text-splitters
+langchain-chroma
+langchain-huggingface
+langchain-groq
+nltk
+pytesseract
+PyPDF2
+python-magic-bin
+fastapi
+uvicorn
+fpdf2
+pydantic
+sentence-transformers
