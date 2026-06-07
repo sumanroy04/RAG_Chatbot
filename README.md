@@ -47,7 +47,7 @@ The bot is designed to support users by offering not only information but also c
 
 **LLM Model:**
 
-- **ChatGroq** (Model: `llama-3.3-70b-versatile` with temperature set to 0): A large language model used to generate responses based on user input.
+- **ChatGroq** (Model: `llama-3.3-70b-versatile` with temperature set to 0.6): A large language model used to generate responses based on user input.
 
 ---
 
