@@ -44,10 +44,12 @@ def create_app() -> FastAPI:
     from backend.api.routes.chat import chat_router
     from backend.api.routes.appointments import appointments_router
     from backend.api.routes.resources import resources_router
+    from backend.api.routes.crisis import crisis_router
 
     app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
     app.include_router(chat_router, tags=["Chat"])
     app.include_router(appointments_router, prefix="/api/appointments", tags=["Appointments"])
     app.include_router(resources_router, prefix="/api/resources", tags=["Resources"])
+    app.include_router(crisis_router, prefix="/api/crisis", tags=["Crisis Support"])
 
     return app
