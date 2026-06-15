@@ -17,15 +17,15 @@ Here is a glimpse of the application's clean design system and user workflows:
 
 ### 1. Interactive RAG Chat Interface
 A responsive real-time conversational chat pane styled with curated dark modes, custom typography, and dynamic transitions.
-![Chat Screen 1](D:\Projects Foder\RAG_Chatbot\data-storage\images\screen_shot_1.png.png)
+![Chat Screen 1](./data-storage/images/screen_shot_1.png)
 
 ### 2. Crisis & Safety Card Trigger
 When self-harm or emergency triggers are detected, the system immediately bypasses LLM generations to deliver verified local emergency resources.
-![Crisis Screen 2](D:\Projects Foder\RAG_Chatbot\data-storage\images\screen_shot_2.png)
+![Crisis Screen 2](./data-storage/images/screen_shot_2.png)
 
 ### 3. Therapist Scheduling Grid
 A grid-based appointment scheduler that allows users to book and cancel consulting sessions.
-![Scheduler Screen 3](D:\Projects Foder\RAG_Chatbot\data-storage\images\screen_shot_3.png)
+![Scheduler Screen 3](./data-storage/images/screen_shot_3.png)
 
 ---
 
