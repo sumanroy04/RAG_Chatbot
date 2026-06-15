@@ -26,10 +26,12 @@ RAG_Chatbot/
 │   │   ├── routes/
 │   │   │   ├── appointments.py   # Therapist slot booking & scheduling endpoints
 │   │   │   ├── chat.py           # User-bot conversation logging & querying endpoint
+│   │   │   ├── crisis.py         # Crisis logs retrieval endpoints
 │   │   │   └── resources.py      # Articles and self-help material directory routes
 │   │   └── models/
 │   │       ├── appointment.py    # Appointment SQLAlchemy model
 │   │       ├── chat.py           # ChatLog SQLAlchemy model
+│   │       ├── crisis.py         # CrisisLog SQLAlchemy model
 │   │       └── resource.py       # Resource SQLAlchemy model
 │   ├── chatbot/                  # LLM Integration and Retrieval Engine
 │   │   ├── __init__.py           # Chatbot module exports
@@ -88,7 +90,7 @@ RAG_Chatbot/
 │
 ├── tests/                        # Backend test suites
 │   └── unit/
-│       └── test_chatbot.py       # Pytest unit tests checking RAG & safety mechanisms
+│       └── test_chatbot.py       # Pytest unit tests checking RAG, safety, and db logging mechanisms
 │
 ├── .gitignore                    # Environment & credential rules for git index exclusions
 ├── run.ps1                       # Automated project orchestrator script (PowerShell)
@@ -107,7 +109,8 @@ The database layer utilizes **SQLAlchemy ORM** to connect to `backend/mental_hea
 Managed under [backend/auth/models.py](file:///d:/Projects%20Foder/RAG_Chatbot/backend/auth/models.py).
 * `id` (Integer, Primary Key, Auto-Increment)
 * `email` (String, Unique, Index, Nullable=False)
-* `password_hash` (String, Nullable=False) - Bcrypt-hashed password.
+* `password_hash` (String, Nullable=False) - Hashed password (bcrypt).
+* `role` (String, Default="user") - "user", "admin", or "therapist".
 * `created_at` (DateTime, Default=datetime.utcnow)
 
 #### 2. Appointments Table (`appointments`)
@@ -115,9 +118,8 @@ Managed under [backend/api/models/appointment.py](file:///d:/Projects%20Foder/RA
 * `id` (Integer, Primary Key, Auto-Increment)
 * `user_id` (Integer, Foreign Key `users.id`, Nullable=False)
 * `therapist_name` (String, Nullable=False)
-* `appointment_date` (String, Nullable=False) - Stored in ISO format.
-* `appointment_time` (String, Nullable=False)
-* `status` (String, Default="Scheduled") - e.g. "Scheduled", "Cancelled", "Completed".
+* `date_time` (String, Nullable=False) - Stored in ISO format.
+* `status` (String, Default="Scheduled") - e.g., "Scheduled", "Cancelled", "Completed".
 * `created_at` (DateTime, Default=datetime.utcnow)
 
 #### 3. Resources Table (`resources`)
@@ -132,10 +134,19 @@ Managed under [backend/api/models/resource.py](file:///d:/Projects%20Foder/RAG_C
 #### 4. Chat Logs Table (`chat_logs`)
 Managed under [backend/api/models/chat.py](file:///d:/Projects%20Foder/RAG_Chatbot/backend/api/models/chat.py).
 * `id` (Integer, Primary Key, Auto-Increment)
-* `user_id` (Integer, Foreign Key `users.id`, Nullable=True) - Optional for logged-in tracking.
+* `user_id` (Integer, Foreign Key `users.id`, Nullable=True) - Linked to registered user if authenticated.
 * `message` (Text, Nullable=False) - User input message.
 * `response` (Text, Nullable=False) - Chatbot generative response.
-* `is_crisis` (Boolean, Default=False) - Flag identifying if self-harm or emergency crisis protocol was triggered.
+* `mood` (String, Nullable=True) - Mood selection if specified.
+* `topic` (String, Nullable=True) - Chat topic focus chip if specified.
+* `created_at` (DateTime, Default=datetime.utcnow)
+
+#### 5. Crisis Logs Table (`crisis_logs`)
+Managed under [backend/api/models/crisis.py](file:///d:/Projects%20Foder/RAG_Chatbot/backend/api/models/crisis.py).
+* `id` (Integer, Primary Key, Auto-Increment)
+* `user_id` (Integer, Foreign Key `users.id`, Nullable=True) - Associated user if authenticated.
+* `message` (Text, Nullable=False) - Distressing text input by the user.
+* `matched_keywords` (String, Nullable=False) - Comma-separated list of triggered terms.
 * `created_at` (DateTime, Default=datetime.utcnow)
 
 ---
@@ -149,6 +160,7 @@ graph TD
     UserQuery[User Query] --> SafetyCheck{Crisis Keyword Triggered?}
     
     SafetyCheck -- Yes --> CrisisResponse[Direct Helpline Response Card]
+    SafetyCheck -- Yes --> LogCrisis[Log Crisis Event to DB]
     SafetyCheck -- No --> VectorRetrieve[Retrieve Context from Vector DB]
     
     VectorRetrieve --> ChromaDB[(Chroma DB Vector Store)]
@@ -171,6 +183,7 @@ graph TD
 To prevent the model from hallucinating medical advice or failing to handle emergencies, a parsing layer intercepts messages before LLM invocation:
 * **Crisis Keywords**: A set of panic descriptors (such as "suicide", "harm myself", "cutting", "kill myself", "end my life") is checked against the parsed message.
 * **Helpline Card**: If a crisis keyword matches, the system circumvents LLM query generation entirely. It returns a static crisis card carrying validated regional and international helpline details (e.g. Vandrevala Foundation, AASRA, AAS, national hotlines) and flags the session log.
+* **Crisis Incident Logger**: Automatically writes details about the occurrence to the `crisis_logs` table for therapist review and database persistence.
 * **Boundary Enforcement**: System prompts explicitly command the LLM:
   * Never act as a therapist.
   * Ground all recommendations strictly within the retrieved context documents.
@@ -180,7 +193,7 @@ To prevent the model from hallucinating medical advice or failing to handle emer
 
 ## 4. REST API Documentation
 
-FastAPI exposes endpoints structured into three main route domains. JWT verification is conducted using headers containing a valid Bearer token.
+FastAPI exposes endpoints structured into four main route domains. JWT verification is conducted using headers containing a valid Bearer token.
 
 ### 1. Authentication (`/api/auth`)
 * `POST /api/auth/register`: Signup a new user. Accepts `{"email": "...", "password": "..."}`. Returns JWT.
@@ -198,6 +211,9 @@ FastAPI exposes endpoints structured into three main route domains. JWT verifica
 
 ### 4. Chat (`/chat`)
 * `POST /chat`: Exposes chatbot interactions. Accepts `{"message": "..."}`. Returns `{"response": "...", "is_crisis": boolean}`. Supports an optional `Authorization` header to link the query session logs to the user's relational history record.
+
+### 5. Crisis Logs (`/api/crisis`)
+* `GET /api/crisis/logs`: Query logged crisis occurrences. Admins and therapists see all logs; normal users can only retrieve their own logs.
 
 ---
 
@@ -260,5 +276,5 @@ Use the PowerShell script provided in the root directory:
 ### Running Tests
 To run unit and RAG testing checks, execute:
 ```bash
-pytest
+python -m pytest
 ```

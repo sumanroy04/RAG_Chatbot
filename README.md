@@ -31,8 +31,9 @@ A grid-based appointment scheduler that allows users to book and cancel consulti
 
 ## ✨ Key Features
 
-*   **Retrieval-Augmented Generation (RAG)**: Uses semantic matching from local ChromaDB directories containing trusted medical literature (WHO and Ministry of Health manuals) to prevent hallucinated advice.
+*   **Retrieval-Augmented Generation (RAG)**: Uses semantic matching from local ChromaDB directories containing trusted medical literature (WHO and Ministry of Health guidelines) to prevent hallucinated advice.
 *   **Emergency Safety Shield**: Parses user inputs using a pattern-matching filter. Distressing terms automatically trigger a crisis helpline overlay.
+*   **Crisis Incident Logger**: Persists and flags user messages containing harmful keywords (along with user association, matched terms, and timestamp) in a dedicated relational database table (`crisis_logs`) for professional review.
 *   **Therapist Scheduling System**: Booking slot manager integrated with mock email and SMS delivery confirmations.
 *   **Static Resource Library**: In-app educational guidelines filtered by categories (e.g. Anxiety, Stress, Depression) and searchable tags.
 *   **Cross-Site Scripting (XSS) Sanitizer**: Automatically cleans and pre-escapes bot/user markdown messages prior to injection.
@@ -90,7 +91,7 @@ RAG_Chatbot/
 ├── backend/                      # Python FastAPI Backend API
 │   ├── app/                      # CORS, extensions, config loader, error handlers
 │   ├── auth/                     # JWT Authentication routes & models
-│   ├── api/                      # Appointments, resources, and chat routes/models
+│   ├── api/                      # Appointments, resources, chat, and crisis routes/models
 │   ├── chatbot/                  # ChromaDB loader, input parser, RAG & LLM response logic
 │   ├── services/                 # Email, SMS, and calendar mock integration stubs
 │   ├── tasks/                    # Scheduled reminder triggers
@@ -108,6 +109,31 @@ RAG_Chatbot/
 │   └── images/                   # UI Assets and screenshot documentation
 └── requirements/                 # Dependency requirement files
 ```
+
+---
+
+## 🔌 REST API Documentation
+
+FastAPI exposes endpoints structured into four main route domains:
+
+### 1. Authentication (`/api/auth`)
+*   `POST /api/auth/register`: Register a user.
+*   `POST /api/auth/login`: Authenticate credentials. Returns standard bearer JWT token.
+*   `GET /api/auth/me`: Verifies user session.
+
+### 2. Appointments (`/api/appointments`)
+*   `GET /api/appointments`: Fetches user's appointments.
+*   `POST /api/appointments`: Book a new session slot.
+*   `DELETE /api/appointments/{id}`: Cancel a session.
+
+### 3. Resources Library (`/api/resources`)
+*   `GET /api/resources`: Fetch self-help articles filtered by tags or categories.
+
+### 4. Chat (`/chat`)
+*   `POST /chat`: Interact with RAG chatbot. Saves history (mapped to `user_id` if authenticated).
+
+### 5. Crisis Logging (`/api/crisis`)
+*   `GET /api/crisis/logs`: Retrieve flagged crisis incidents. **Admins and therapists can see all crisis logs**; regular users can retrieve only their own flagged events.
 
 ---
 
