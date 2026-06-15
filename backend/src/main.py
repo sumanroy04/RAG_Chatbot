@@ -8,6 +8,7 @@ import json
 import os
 import re
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -244,7 +245,6 @@ Answer:"""
     retriever = vectorstore.as_retriever(search_kwargs={"k": get_retrieval_k(selected_topic)})
 
     memory = ConversationBufferMemory(
-        llm=llm,
         output_key="answer",
         memory_key="chat_history",
         return_messages=True,
@@ -261,17 +261,23 @@ Answer:"""
     )
 
 
-app = FastAPI(title="Patronus AI", description="Mental health support chatbot API")
-from fastapi.middleware.cors import CORSMiddleware
+# Cache the vectorstore at startup so HuggingFace loads only once
+_vectorstore = None
 
-app = FastAPI(title="Patronus AI", description="Mental health support chatbot API")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _vectorstore
+    _vectorstore = setup_vectorstore()
+    yield
+
+
+app = FastAPI(
+    title="Patronus AI",
+    description="Mental health support chatbot API",
+    lifespan=lifespan,
 )
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -298,9 +304,8 @@ async def chatbot(request: MessageRequest):
             "is_crisis": True,
         }
 
-    vectorstore = setup_vectorstore()
     conversational_chain = chat_chain(
-        vectorstore,
+        _vectorstore,
         selected_mood=request.mood,
         selected_topic=request.topic,
     )
