@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
-import HeroStrip from "./components/HeroStrip";
-import MoodSelector from "./components/MoodSelector";
-import TopicChips from "./components/TopicChips";
-import ChatWindow from "./components/ChatWindow";
-import ChatInput from "./components/ChatInput";
+import Sidebar from "./components/common/Sidebar";
+import Header from "./components/common/Header";
+import HeroStrip from "./components/common/HeroStrip";
+import MoodSelector from "./components/common/MoodSelector";
+import TopicChips from "./components/common/TopicChips";
+import ChatWindow from "./components/chat/ChatWindow";
+import ChatInput from "./components/chat/ChatInput";
+import AuthForm from "./components/auth/AuthForm";
+import BookingForm from "./components/appointments/BookingForm";
+import ResourceList from "./components/common/ResourceList";
+
 import { DEFAULT_RECENT_CHATS, WELCOME_MESSAGE, getButtonStarter } from "./constants";
-import { sendChatMessage, ChatApiError } from "./api";
+import { sendChatMessage, ChatApiError, API_BASE_URL } from "./services/api";
 import { exportChatToPdf } from "./utils/exportPdf";
 import type { ChatMessage } from "./types";
 
@@ -22,6 +26,11 @@ export default function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  // Modular tabs and auth state
+  const [activeTab, setActiveTab] = useState<"chat" | "resources" | "appointments" | "auth">("chat");
+  const [user, setUser] = useState<{ username: string; email: string; role: string } | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
@@ -94,6 +103,21 @@ export default function App() {
     }
   };
 
+  const handleAuthSuccess = (
+    authenticatedUser: { username: string; email: string; role: string },
+    accessToken: string
+  ) => {
+    setUser(authenticatedUser);
+    setToken(accessToken);
+    setActiveTab("chat"); // Switch back to chat on success
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setToken(null);
+    setActiveTab("chat");
+  };
+
   const displayMessages: ChatMessage[] =
     messages.length === 0
       ? [{ id: "welcome", role: "assistant", content: WELCOME_MESSAGE }]
@@ -117,6 +141,10 @@ export default function App() {
         isExporting={isExporting}
         onNewChat={handleNewChat}
         onExportPdf={handleExportPdf}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        user={user}
+        onLogout={handleLogout}
       />
 
       <main className="main-content">
@@ -124,15 +152,25 @@ export default function App() {
 
         {apiError && <div className="api-error-banner">⚠️ {apiError}</div>}
 
-        <HeroStrip contextLabel={contextLabel} />
+        {activeTab === "chat" && (
+          <>
+            <HeroStrip contextLabel={contextLabel} />
 
-        <MoodSelector selectedMood={selectedMood} onSelect={handleMoodSelect} />
+            <MoodSelector selectedMood={selectedMood} onSelect={handleMoodSelect} />
 
-        <TopicChips selectedTopic={selectedTopic} onSelect={handleTopicSelect} disabled={isTyping} />
+            <TopicChips selectedTopic={selectedTopic} onSelect={handleTopicSelect} disabled={isTyping} />
 
-        <ChatWindow messages={displayMessages} isTyping={isTyping} />
+            <ChatWindow messages={displayMessages} isTyping={isTyping} />
 
-        <ChatInput onSend={handleSend} disabled={isTyping} />
+            <ChatInput onSend={handleSend} disabled={isTyping} />
+          </>
+        )}
+
+        {activeTab === "resources" && <ResourceList apiBaseUrl={API_BASE_URL} />}
+
+        {activeTab === "appointments" && <BookingForm token={token} apiBaseUrl={API_BASE_URL} />}
+
+        {activeTab === "auth" && <AuthForm onAuthSuccess={handleAuthSuccess} apiBaseUrl={API_BASE_URL} />}
       </main>
     </div>
   );

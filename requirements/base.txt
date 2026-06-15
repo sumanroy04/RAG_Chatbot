@@ -1,0 +1,29 @@
+# Core Framework & Server
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+email-validator
+requests
+
+
+# AI/ML & RAG
+langchain
+langchain-community
+langchain-text-splitters
+langchain-chroma
+langchain-huggingface
+langchain-groq
+sentence-transformers
+torchvision
+nltk
+
+# Database & Authentication
+SQLAlchemy
+bcrypt
+
+# Document Processing
+pytesseract
+PyPDF2
+python-magic-bin
+fpdf2
