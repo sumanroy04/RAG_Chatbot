@@ -19,7 +19,7 @@ class CrisisLogSchema(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 @crisis_router.get("/logs", response_model=List[CrisisLogSchema])
 def get_crisis_logs(

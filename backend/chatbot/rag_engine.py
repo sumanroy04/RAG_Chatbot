@@ -80,7 +80,7 @@ def chat_chain(
     selected_mood: str | None = None,
     selected_topic: str | None = None,
 ):
-    llm = ChatGroq(model_name="llama-3.3-70b-versatile", temperature=0.6, groq_api_key=GROQ_API_KEY)
+    llm = ChatGroq(model_name="llama-3.3-70b-versatile", temperature=0.2, groq_api_key=GROQ_API_KEY)
 
     prompt_template = f"""{build_contextual_system_prompt(system_prompt, selected_mood, selected_topic)}
 

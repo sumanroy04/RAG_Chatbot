@@ -20,7 +20,7 @@ class AppointmentSchema(BaseModel):
     status: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 @appointments_router.get("/", response_model=List[AppointmentSchema])
 def get_appointments(
