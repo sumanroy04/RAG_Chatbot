@@ -26,6 +26,23 @@ if not GROQ_API_KEY:
         except Exception:
             pass
 
+HF_TOKEN = (
+    os.environ.get("HF_TOKEN", "").strip()
+    or os.environ.get("HUGGINGFACEHUB_API_TOKEN", "").strip()
+)
+if not HF_TOKEN:
+    config_path = BACKEND_DIR / "config" / "config.json"
+    if config_path.exists():
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                config_data = json.load(f)
+            HF_TOKEN = (
+                config_data.get("HF_TOKEN", "").strip()
+                or config_data.get("HUGGINGFACEHUB_API_TOKEN", "").strip()
+            )
+        except Exception:
+            pass
+
 # Database config
 DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{BACKEND_DIR}/mental_health.db")
 

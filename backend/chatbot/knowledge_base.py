@@ -9,7 +9,7 @@ from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from backend.app.config import DATA_DIR, VECTOR_DB_DIR
+from backend.app.config import DATA_DIR, VECTOR_DB_DIR, HF_TOKEN
 from backend.app.constants import BUTTON_TOPIC_KEYWORDS
 
 def configure_tesseract():
@@ -73,7 +73,8 @@ def load_pdf_documents(directory: str) -> list[Document]:
 
 def setup_vectorstore():
     persist_directory = str(VECTOR_DB_DIR)
-    embeddings = HuggingFaceEmbeddings()
+    model_kwargs = {"token": HF_TOKEN} if HF_TOKEN else {}
+    embeddings = HuggingFaceEmbeddings(model_kwargs=model_kwargs)
     # Ensure directory exists
     os.makedirs(persist_directory, exist_ok=True)
     return Chroma(persist_directory=persist_directory, embedding_function=embeddings)
@@ -99,7 +100,8 @@ def rebuild_vectorstore():
     chunks = splitter.split_documents(documents)
     chunks = enrich_chunk_metadata(chunks)
 
-    embeddings = HuggingFaceEmbeddings()
+    model_kwargs = {"token": HF_TOKEN} if HF_TOKEN else {}
+    embeddings = HuggingFaceEmbeddings(model_kwargs=model_kwargs)
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,

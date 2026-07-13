@@ -51,6 +51,7 @@ A grid-based appointment scheduler that allows users to book and cancel consulti
 Create a file named `.env` in the root folder:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
+HF_TOKEN=your_hugging_face_access_token_here
 DATABASE_URL=sqlite:///backend/mental_health.db
 JWT_SECRET_KEY=use_a_strong_random_secret_here
 ```
