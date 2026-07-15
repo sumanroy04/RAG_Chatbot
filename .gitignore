@@ -166,7 +166,10 @@ cython_debug/
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+.idea/
+
+# Root-only npm lockfile is accidental here; keep the frontend lockfile committed.
+/package-lock.json
 
 # Ruff stuff:
 .ruff_cache/
@@ -186,6 +189,9 @@ backend/*.db-journal
 node_modules/
 frontend/node_modules/
 frontend/dist/
+
+# Generated vector store / embeddings cache
+data-storage/vector_db_dir/
 
 # Logs and system files
 *.log
